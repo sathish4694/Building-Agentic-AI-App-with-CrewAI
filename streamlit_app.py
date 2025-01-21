@@ -2,19 +2,30 @@ import streamlit as st
 from crewai import Agent, Task, Crew, LLM
 from crewai_tools import SerperDevTool
 from dotenv import load_dotenv
+import time
 
 # Load environment variables from .env file
 load_dotenv()
 
+# Set Streamlit theme (optional, can be customized in Streamlit settings)
+st.set_page_config(page_title="Medical Assistant Using Crew AI", page_icon="💡", layout="wide")
+
 # Streamlit interface
-st.title("Medical Assistant Using Generative AI")
+st.title("Medical Assistant Using Crew AI")
 st.write("""
     This tool allows you to research and create a blog post about the topic of your choice.
     The agents will research the topic and write a comprehensive article using generative AI.
 """)
 
-# User input for the topic
+# User input for the topic with a placeholder and a default value
 topic = st.text_input("Enter the topic you want to research and write about:", "Medical assistant using Generative AI")
+
+# Styling for the input field and description
+st.markdown("""
+    <style>
+        .css-1v3fvcr { font-size: 18px; color: #333; }
+    </style>
+""", unsafe_allow_html=True)
 
 # Define the LLM model
 llm = LLM(model="gpt-4")
@@ -106,17 +117,34 @@ crew = Crew(
 )
 
 # Button to start the process
-if st.button("Start Research and Writing"):
-    # Kick off the research and writing process
-    results = crew.kickoff(inputs={"topic": topic})
+if st.button("Start Research and Writing", use_container_width=True):
+    with st.spinner("Research and writing in progress... Please wait!"):
+        # Kick off the research and writing process
+        results = crew.kickoff(inputs={"topic": topic})
 
-    # Display results
-    st.subheader("Research Results:")
-    st.write(results["research_task"]["output"])
+        # Add a slight delay to simulate the process running
+        time.sleep(3)
 
-    st.subheader("Blog Post:")
-    st.write(results["writing_task"]["output"])
+    # Display results in two columns
+    col1, col2 = st.columns(2)
 
-    # Show markdown result for blog post
+    with col1:
+        st.subheader("Research Results:")
+        st.write(results["research_task"]["output"])
+
+    with col2:
+        st.subheader("Blog Post:")
+        st.write(results["writing_task"]["output"])
+
+    # Show markdown result for blog post in a collapsible section
     st.subheader("Generated Blog Post (Markdown Format):")
-    st.code(results["writing_task"]["output"], language="markdown")
+    with st.expander("Click to view Markdown output"):
+        st.code(results["writing_task"]["output"], language="markdown")
+
+    # Display reference section with external links to sources
+    st.subheader("References:")
+    st.write("[Source: URL](#)")
+
+else:
+    st.info("Click the button above to start the process and generate your blog post.")
+
